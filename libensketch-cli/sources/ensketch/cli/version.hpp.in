@@ -1,0 +1,55 @@
+#pragma once
+
+// The numeric version format is AAAAABBBBBCCCCCDDDE where:
+//
+// AAAAA - major version number
+// BBBBB - minor version number
+// CCCCC - bugfix version number
+// DDD   - alpha / beta (DDD + 500) version number
+// E     - final (0) / snapshot (1)
+//
+// When DDDE is not 0, 1 is subtracted from AAAAABBBBBCCCCC. For example:
+//
+// Version      AAAAABBBBBCCCCCDDDE
+//
+// 0.1.0        0000000001000000000
+// 0.1.2        0000000001000020000
+// 1.2.3        0000100002000030000
+// 2.2.0-a.1    0000200001999990010
+// 3.0.0-b.2    0000299999999995020
+// 2.2.0-a.1.z  0000200001999990011
+//
+#define ENSKETCH_CLI_VERSION       $libensketch_cli.version.project_number$ULL
+#define ENSKETCH_CLI_VERSION_STR   "$libensketch_cli.version.project$"
+#define ENSKETCH_CLI_VERSION_ID    "$libensketch_cli.version.project_id$"
+#define ENSKETCH_CLI_VERSION_FULL  "$libensketch_cli.version$"
+
+#define ENSKETCH_CLI_VERSION_MAJOR $libensketch_cli.version.major$
+#define ENSKETCH_CLI_VERSION_MINOR $libensketch_cli.version.minor$
+#define ENSKETCH_CLI_VERSION_PATCH $libensketch_cli.version.patch$
+
+#define ENSKETCH_CLI_PRE_RELEASE   $libensketch_cli.version.pre_release$
+
+#define ENSKETCH_CLI_SNAPSHOT_SN   $libensketch_cli.version.snapshot_sn$ULL
+#define ENSKETCH_CLI_SNAPSHOT_ID   "$libensketch_cli.version.snapshot_id$"
+
+// For convenience, the above macros can be accessed in a type-safe way
+// by the following inlined constexpr variables in the 'version' namespace.
+//
+namespace ensketch::cli::version {
+
+inline constexpr auto number = ENSKETCH_CLI_VERSION;
+inline constexpr auto string = ENSKETCH_CLI_VERSION_STR;
+inline constexpr auto id     = ENSKETCH_CLI_VERSION_ID;
+inline constexpr auto full   = ENSKETCH_CLI_VERSION_FULL;
+
+inline constexpr auto major = ENSKETCH_CLI_VERSION_MAJOR;
+inline constexpr auto minor = ENSKETCH_CLI_VERSION_MINOR;
+inline constexpr auto patch = ENSKETCH_CLI_VERSION_PATCH;
+
+inline constexpr auto pre_release = ENSKETCH_CLI_PRE_RELEASE;
+
+inline constexpr auto snapshot_sn = ENSKETCH_CLI_SNAPSHOT_SN;
+inline constexpr auto snapshot_id = ENSKETCH_CLI_SNAPSHOT_ID;
+
+}  // namespace ensketch::cli::version

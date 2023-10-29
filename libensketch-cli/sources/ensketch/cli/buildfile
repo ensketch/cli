@@ -1,0 +1,29 @@
+intf_libs = # Interface dependencies.
+
+lib{ensketch-cli}: {hxx ixx txx}{** -version} hxx{version} $intf_libs
+
+hxx{version}: in{version} $src_root/manifest
+
+# Build options.
+#
+out_pfx = [dir_path] $out_root/sources/
+src_pfx = [dir_path] $src_root/sources/
+
+cxx.poptions =+ "-I$out_pfx" "-I$src_pfx"
+
+# Export options.
+#
+lib{ensketch-cli}:
+{
+  cxx.export.poptions = "-I$out_pfx" "-I$src_pfx"
+  cxx.export.libs = $intf_libs
+}
+
+# Install into the ensketch/cli/ subdirectory of, say, /usr/include/
+# recreating subdirectories.
+#
+{hxx ixx txx}{*}:
+{
+  install         = include/ensketch/cli/
+  install.subdirs = true
+}
