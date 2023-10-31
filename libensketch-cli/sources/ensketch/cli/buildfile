@@ -1,4 +1,5 @@
 intf_libs = # Interface dependencies.
+import intf_libs += libensketch-xstd%lib{ensketch-xstd}
 
 lib{ensketch-cli}: {hxx ixx txx}{** -version} hxx{version} $intf_libs
 
