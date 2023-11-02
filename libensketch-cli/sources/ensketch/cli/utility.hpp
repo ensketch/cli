@@ -17,4 +17,6 @@ namespace generic {
 using namespace xstd::generic;
 }  // namespace generic
 
+namespace meta = xstd::meta;
+
 }  // namespace ensketch::cli

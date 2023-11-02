@@ -1,4 +1,6 @@
 #pragma once
+#include <ensketch/cli/arg_list.hpp>
+#include <ensketch/cli/option_list.hpp>
 
 namespace ensketch::cli {
 
@@ -12,7 +14,7 @@ concept parser = generic::option_list<option_list_type> &&
                           czstring current,
                           arg_list& args,
                           option_list_type& options) {
-                   { value.parse(current, arg, options) } -> same_as<void>;
+                   { value.parse(current, args, options) } -> same_as<void>;
                  };
 
 }  // namespace generic
