@@ -3,23 +3,28 @@
 
 namespace ensketch::cli {
 
-namespace generic {
+// namespace generic {
 
-template <typename option_type>
-concept shortcut_parsable = requires(option_type& option, arg_list& args) {
-  { option_type::short_name() } -> same_as<char>;
-  option.parse(args);
-};
+// template <typename option_type>
+// concept shortcut_parsable = requires(option_type& option, arg_list& args) {
+//   { option_type::short_name() } -> same_as<char>;
+//   option.parse(args);
+// };
 
-}  // namespace generic
+// }  // namespace generic
 
+///
+///
 struct shortcut_parser {
-  template <instance::option_list options>
-  static constexpr void parse(czstring current, arg_list& args, options& opts) {
+  ///
+  ///
+  static constexpr void parse(czstring current,
+                              arg_list& args,
+                              generic::option_list auto& options) {
     auto args_backup = args;
     for (auto arg = current; *arg; ++arg) {
-      const auto parsed =
-          for_each_until(opts, [&]<typename option_type>(option_type& option) {
+      const auto parsed = for_each_until(
+          options, [&]<typename option_type>(option_type& option) {
             if constexpr (generic::short_name_parsable<option_type>) {
               if (option_type::short_name() != *arg) return false;
               option.parse(args);

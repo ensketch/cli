@@ -4,6 +4,7 @@
 #include <ensketch/cli/arg_list.hpp>
 #include <ensketch/cli/option_list.hpp>
 #include <ensketch/cli/parser/name_parser.hpp>
+#include <ensketch/cli/parser/position_parser.hpp>
 #include <ensketch/cli/parser_kernel.hpp>
 #include <ensketch/cli/parser_list.hpp>
 
@@ -11,88 +12,44 @@ using namespace std;
 // using ensketch::cli::arg_list;
 using namespace ensketch::cli;
 
-template <static_zstring n, static_zstring d>
-struct flag {
-  static consteval auto name() { return n; }
-  static consteval auto description() { return d; }
-  bool value = false;
-};
+template <static_zstring name,
+          static_zstring description,
+          typename type = czstring>
+using var = attachment<name, description, type>;
 
-namespace detail {
-template <typename type>
-struct is_flag : std::false_type {};
-template <static_zstring name, static_zstring description>
-struct is_flag<flag<name, description>> : std::true_type {};
-}  // namespace detail
-namespace instance {
-template <typename type>
-concept flag = detail::is_flag<type>::value;
-}
+using options_type = option_list<flag<"help", "Print the help message.">,
+                                 flag<"version", "Print the program version.">,
+                                 var<"key", "Set the key of the program.", int>,
+                                 var<"input", "Set the input file path.">,
+                                 var<"output", "Set the output file path.">>;
 
-constexpr bool parse_name(name_parser,
-                          instance::flag auto& option,
-                          czstring current,
-                          arg_list& args) {
-  if (*current) return false;
-  return option.value = true;
-}
-
-template <static_zstring n,
-          static_zstring d,
-          typename type = czstring,
-          type default_value = type{}>
-struct attachment {
-  static consteval auto name() { return n; }
-  static consteval auto description() { return d; }
-  type value = default_value;
-};
-
-namespace detail {
-template <typename type>
-struct is_attachment : std::false_type {};
-template <static_zstring name, static_zstring description>
-struct is_attachment<attachment<name, description>> : std::true_type {};
-}  // namespace detail
-namespace instance {
-template <typename type>
-concept attachment = detail::is_attachment<type>::value;
-}
-
-constexpr bool parse_name(name_parser,
-                          instance::attachment auto& option,
-                          czstring current,
-                          arg_list& args) {
-  if (*current) return false;
-  if (args.empty()) {
-    args.unpop_front();
-    throw parser_error(
-        args, string("No given value for option '") + args.front() + "'.");
-  }
-  option.value = args.pop_front();
-  return true;
-}
-
-using options_type =
-    option_list<flag<"help", "Print the help message.">,
-                flag<"version", "Print the program version.">,
-                attachment<"key", "Set the key of the program.">>;
-options_type options{};
-
-static_assert(generic::option_list<options_type>);
+constexpr auto position_scheme = static_zstring_list<"output", "input">{};
 
 using parser_list =
-    named_tuple<static_identifier_list<"--">, std::tuple<name_parser>>;
-parser_list parsers{};
+    named_tuple<static_identifier_list<"--", "">,
+                std::tuple<name_parser<options_type>,
+                           position_parser<position_scheme, options_type>>>;
 
 int main(int argc, char* argv[]) {
   arg_list args{argc, argv};
-  // while (args) cout << args.pop_front() << endl;
-
+  options_type options{};
+  parser_list parsers{};
   parse(args, options, parsers);
 
-  for_each(options, [](auto& option) {
+  cout << "usage:\n" << argv[0] << " [options]";
+  for_each(position_scheme, []<auto name> { cout << " <" << name << ">"; });
+  cout << endl;
+
+  static_assert(!generic::reducible_named_tuple<decltype(options.tuple())>);
+
+  ensketch::xstd::for_each(options.tuple(), [&](auto& option) {
     cout << left << setw(20) << option.name() << '\t' << option.description()
          << endl;
-    cout << "value = " << option.value << endl;
+
+    for_each(parsers, [&]<static_zstring prefix>(auto& parser) {
+      cout << prefix << option.name() << endl;
+    });
+
+    cout << boolalpha << "value = " << option.value << endl;
   });
 }
