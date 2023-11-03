@@ -9,6 +9,7 @@ using namespace std;
 using xstd::czstring;
 using xstd::static_zstring;
 using xstd::static_zstring_list;
+using xstd::type_list;
 using xstd::type_list_from;
 
 using xstd::named_tuple;

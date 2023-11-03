@@ -5,6 +5,7 @@
 #include <ensketch/cli/option_list.hpp>
 #include <ensketch/cli/parser/name_parser.hpp>
 #include <ensketch/cli/parser/position_parser.hpp>
+#include <ensketch/cli/parser/shortcut_parser.hpp>
 #include <ensketch/cli/parser_kernel.hpp>
 #include <ensketch/cli/parser_list.hpp>
 
@@ -19,15 +20,22 @@ using var = attachment<name, description, type>;
 
 using options_type = option_list<flag<"help", "Print the help message.">,
                                  flag<"version", "Print the program version.">,
+                                 flag<"verbose", "Verbose output.">,
                                  var<"key", "Set the key of the program.", int>,
                                  var<"input", "Set the input file path.">,
                                  var<"output", "Set the output file path.">>;
 
 constexpr auto position_scheme = static_zstring_list<"output", "input">{};
 
+constexpr auto binding_scheme = type_list<char_binding<'v', "verbose">,
+                                          char_binding<'h', "help">,
+                                          char_binding<'i', "input">,
+                                          char_binding<'o', "output">>{};
+
 using parser_list =
-    named_tuple<static_identifier_list<"--", "">,
+    named_tuple<static_identifier_list<"--", "-", "">,
                 std::tuple<name_parser<options_type>,
+                           shortcut_parser<binding_scheme, options_type>,
                            position_parser<position_scheme, options_type>>>;
 
 int main(int argc, char* argv[]) {
@@ -46,10 +54,10 @@ int main(int argc, char* argv[]) {
     cout << left << setw(20) << option.name() << '\t' << option.description()
          << endl;
 
-    for_each(parsers, [&]<static_zstring prefix>(auto& parser) {
-      cout << prefix << option.name() << endl;
-    });
+    // for_each(parsers, [&]<static_zstring prefix>(auto& parser) {
+    //   cout << prefix << option.name() << endl;
+    // });
 
-    cout << boolalpha << "value = " << option.value << endl;
+    cout << boolalpha << "value = " << option.value << endl << endl;
   });
 }
