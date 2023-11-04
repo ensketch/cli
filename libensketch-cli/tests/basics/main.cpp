@@ -12,6 +12,7 @@
 using namespace std;
 // using ensketch::cli::arg_list;
 using namespace ensketch::cli;
+// namespace xstd = ensketch::xstd;
 
 template <static_zstring name,
           static_zstring description,
@@ -37,6 +38,36 @@ using parser_list =
                 std::tuple<name_parser<options_type>,
                            shortcut_parser<binding_scheme, options_type>,
                            position_parser<position_scheme, options_type>>>;
+
+namespace ensketch::cli {
+namespace generic {
+template <typename type>
+concept command = requires {
+  { type::name() } -> convertible_to<czstring>;
+  { type::description() } -> convertible_to<czstring>;
+};
+template <typename list>
+concept command_list = generic::named_tuple<list> &&
+                       for_all(type_list_from<list>(),
+                               []<typename type> { return command<type>; });
+}  // namespace generic
+template <generic::command... commands>
+using command_list = named_tuple<static_identifier_list<commands::name()...>,
+                                 std::tuple<commands...>>;
+
+constexpr void parse(generic::command_list auto& commands,
+                     czstring current,
+                     arg_list& args) {
+  constexpr auto command_tree = static_radix_tree_from(commands.names);
+  const auto parsed = visit(command_tree, current, [&]<static_zstring command> {
+    value<command>(commands)(args);
+  });
+  if (parsed) return;
+  args.unpop_front();
+  throw parser_error(args, string("Unknown command '") + args.front() + "'.");
+}
+
+}  // namespace ensketch::cli
 
 int main(int argc, char* argv[]) {
   arg_list args{argc, argv};

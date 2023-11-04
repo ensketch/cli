@@ -16,11 +16,16 @@ struct attachment {
   static consteval auto name() { return n; }
   static consteval auto description() { return d; }
 
-  constexpr void parse(czstring current, arg_list& args) {
+  constexpr void parse(arg_list& args) {
+    if (args.empty()) {
+      args.unpop_front();
+      throw parser_error(
+          args, string("No given value for option '") + args.front() + "'.");
+    }
     if constexpr (meta::equal<type, czstring>) {
-      value = current;
+      value = args.pop_front();
     } else {
-      stringstream input{current};
+      stringstream input{args.pop_front()};
       input >> value;
       if (!input) throw parser_error(args, "Failed to parse argument to type.");
     }

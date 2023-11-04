@@ -33,7 +33,8 @@ struct shortcut_parser {
     for_each(binding_scheme, [&]<typename binding> {
       bindings[binding::character] = [](czstring current, arg_list& args,
                                         option_list_type& options) {
-        parse(value<binding::identifier>(options), current, args);
+        ensketch::cli::parse(value<binding::identifier>(options), current,
+                             args);
       };
     });
 
@@ -63,30 +64,30 @@ struct shortcut_parser {
 
   ///
   ///
-  static constexpr void parse(instance::flag auto& option,
-                              czstring current,
-                              arg_list& args) {
-    option.value = true;
-  }
+  // static constexpr void parse(instance::flag auto& option,
+  //                             czstring current,
+  //                             arg_list& args) {
+  //   option.value = true;
+  // }
 
-  ///
-  ///
-  static constexpr void parse(instance::attachment auto& option,
-                              czstring current,
-                              arg_list& args) {
-    if (*current)
-      throw parser_error(args,
-                         "Attachments in shortcuts must be placed at the end.");
+  // ///
+  // ///
+  // static constexpr void parse(instance::attachment auto& option,
+  //                             czstring current,
+  //                             arg_list& args) {
+  //   if (*current)
+  //     throw parser_error(args,
+  //                        "Attachments in shortcuts must be placed at the end.");
 
-    if (args.empty()) {
-      args.unpop_front();
-      throw parser_error(
-          args, string("No given value for option '") + args.front() + "'.");
-    }
+  //   if (args.empty()) {
+  //     args.unpop_front();
+  //     throw parser_error(
+  //         args, string("No given value for option '") + args.front() + "'.");
+  //   }
 
-    current = args.pop_front();
-    option.parse(current, args);
-  }
+  //   current = args.pop_front();
+  //   option.parse(current, args);
+  // }
 
   // array<size_t, 256> bindings{};
 };

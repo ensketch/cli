@@ -37,9 +37,17 @@ struct name_parser {
     bool parsed = false;
     const auto prefix_matched =
         traverse(name_tree, current, [&]<static_zstring prefix>(czstring tail) {
+          auto& option = value<prefix>(options);
+          using option_type = meta::reduction<decltype(option)>;
+          if constexpr (generic::flag_parse<option_type> ||
+                        generic::args_parse<option_type>)
+            if (*tail) return;
+          ensketch::cli::parse(option, tail, args);
+          parsed = true;
+
           // using option_type = decay_t<decltype(option<prefix>(options))>;
           // if constexpr (generic::name_parsable<option_type>)
-          parsed = parse(value<prefix>(options), tail, args);
+          // parsed = parse(value<prefix>(options), tail, args);
           // else {
           //   args.unpop_front();
           //   throw parser_error(args, string("Option '") + czstring(prefix) +
@@ -57,29 +65,29 @@ struct name_parser {
 
   ///
   ///
-  static constexpr bool parse(instance::flag auto& option,
-                              czstring current,
-                              arg_list& args) {
-    if (*current) return false;
-    return option.value = true;
-  }
+  // static constexpr bool parse(instance::flag auto& option,
+  //                             czstring current,
+  //                             arg_list& args) {
+  //   if (*current) return false;
+  //   return option.value = true;
+  // }
 
   ///
   ///
-  static constexpr bool parse(instance::attachment auto& option,
-                              czstring current,
-                              arg_list& args) {
-    if (*current) return false;
-    if (args.empty()) {
-      args.unpop_front();
-      throw parser_error(
-          args, string("No given value for option '") + args.front() + "'.");
-    }
-    // option.value = args.pop_front();
-    current = args.pop_front();
-    option.parse(current, args);
-    return true;
-  }
+  // static constexpr bool parse(instance::attachment auto& option,
+  //                             czstring current,
+  //                             arg_list& args) {
+  //   if (*current) return false;
+  //   if (args.empty()) {
+  //     args.unpop_front();
+  //     throw parser_error(
+  //         args, string("No given value for option '") + args.front() + "'.");
+  //   }
+  //   // option.value = args.pop_front();
+  //   current = args.pop_front();
+  //   option.parse(current, args);
+  //   return true;
+  // }
 };
 
 }  // namespace ensketch::cli

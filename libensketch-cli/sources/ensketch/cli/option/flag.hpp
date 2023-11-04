@@ -9,6 +9,9 @@ template <static_zstring n, static_zstring d>
 struct flag {
   static consteval auto name() { return n; }
   static consteval auto description() { return d; }
+
+  constexpr void parse() noexcept { value = true; }
+
   bool value = false;
 };
 
