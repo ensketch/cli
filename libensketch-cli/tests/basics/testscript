@@ -1,0 +1,943 @@
+: Simple Flags
+:
+{
+  $* >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --help >>EOF == 0
+  help = true
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --hel >>EOF != 0
+  ERROR: unknown option name 'hel' in '--hel'
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --helpa >>EOF != 0
+  ERROR: unknown option name 'helpa' in '--helpa'
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+}
+
+: Syntax for Flags Enabled by Default
+:
+{
+
+  : Enable or Disable Flags
+  {
+    $* --verbose >>EOF == 0
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+
+    $* --verbose=true >>EOF == 0
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+
+    $* --verbose=false >>EOF == 0
+    help = false
+    verbose = false
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+  }
+
+  : Overwrite previously set values
+  :
+  $* --verbose=false --verbose=true >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  : Boolean Value Parsing
+  :
+  {
+    $* --verbose=fals >>EOF != 0
+    ERROR: invalid boolean value 'fals' in '--verbose=fals'
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+
+    $* --verbose=True >>EOF != 0
+    ERROR: invalid boolean value 'True' in '--verbose=True'
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+
+    $* --verbose=FALSE >>EOF != 0
+    ERROR: invalid boolean value 'FALSE' in '--verbose=FALSE'
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+  }
+}
+
+{
+  $* --help --verbose >>EOF == 0
+  help = true
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --verbose --help >>EOF == 0
+  help = true
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --help --verbose=false >>EOF == 0
+  help = true
+  verbose = false
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --verbose=false --help >>EOF == 0
+  help = true
+  verbose = false
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+}
+
+: Boolean Values as Variables
+{
+  $* --validate >>EOF != 0
+  ERROR: missing argument for 'validate' after '--validate'
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --validate true >>EOF == 0
+  help = false
+  verbose = true
+  validate = true
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --validate false >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --validate=true >>EOF == 0
+  help = false
+  verbose = true
+  validate = true
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --validate=false >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  : overwrite
+  :
+  {
+    $* --validate true --validate false >>EOF == 0
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+
+    $* --validate true --validate=false >>EOF == 0
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+  }
+}
+
+: Integer-Based Variables
+:
+{
+  $* --number >>EOF != 0
+  ERROR: missing argument for 'number' after '--number'
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --number 123 >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 123
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --number -987 >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = -987
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --number=456 >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 456
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --number=-654 >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = -654
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  : overwrite
+  :
+  {
+    $* --number 123 --number 654 >>EOF == 0
+    help = false
+    verbose = true
+    validate = false
+    number = 654
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+
+    $* --number 123 --number=987 >>EOF == 0
+    help = false
+    verbose = true
+    validate = false
+    number = 987
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+  }
+
+  : Integer Values
+  :
+  {
+    $* --number nrtd >>EOF != 0
+    ERROR: invalid integral value 'nrtd'
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+  }
+}
+
+: Floating-Point Variables
+:
+{
+  $* --scalar -0.123 >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = -0.123
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --scalar=1.53e-2 >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 0.0153
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --scalar=1.5e5 >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 150000
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --scalar nrtd >>EOF != 0
+  ERROR: invalid floating-point value 'nrtd'
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+}
+
+: String Variables
+:
+{
+  $* --string unquoted >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = unquoted
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --string=unquoted >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = unquoted
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --string "quoted string" >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = quoted string
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --string="quoted string" >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = quoted string
+  maybe = false
+  file = false
+  input = []
+  output = a.out
+  EOF
+}
+
+: Optional Variables
+:
+{
+  $* --maybe 0 >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = 0
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --maybe=-1 >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = -1
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --maybe 256 >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = 256
+  file = false
+  input = []
+  output = a.out
+  EOF
+
+  $* --maybe=256 >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = 256
+  file = false
+  input = []
+  output = a.out
+  EOF
+}
+
+: Optional File Path Variables
+:
+{
+  $* --file .config/data >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = .config/data
+  input = []
+  output = a.out
+  EOF
+
+  $* --file="~/.config/data/" >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = ~/.config/data/
+  input = []
+  output = a.out
+  EOF
+
+  $* --file="////" >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = ////
+  input = []
+  output = a.out
+  EOF
+}
+
+: Shortcuts and Bindings
+:
+{
+
+  : Compressing Flags
+  :
+  {
+    $* -h >>EOF == 0
+    help = true
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+
+    $* -v >>EOF == 0
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+
+    $* -a >>EOF != 0
+    ERROR: unknown short option 'a' in '-a'
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+
+    $* -hav >>EOF != 0
+    ERROR: unknown short option 'a' in '-hav'
+    help = true
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+
+    $* -vah >>EOF != 0
+    ERROR: unknown short option 'a' in '-vah'
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+  }
+
+  : Variables and Flags
+  :
+  {
+    $* -n 123 >>EOF == 0
+    help = false
+    verbose = true
+    validate = false
+    number = 123
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+
+    $* -n=123 >>EOF != 0
+    ERROR: missing argument after '-n=123' for 'n' in shortcut '-n=123'
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+
+    : Layout Specification by Using Shortcuts
+    :
+    {
+      $* -hnvs 123 hello >>EOF == 0
+      help = true
+      verbose = true
+      validate = false
+      number = 123
+      scalar = 1.23
+      string = hello
+      maybe = false
+      file = false
+      input = []
+      output = a.out
+      EOF
+
+      $* -snf "some text" 987 ~/.config/data >>EOF == 0
+      help = false
+      verbose = true
+      validate = false
+      number = 987
+      scalar = 1.23
+      string = some text
+      maybe = false
+      file = ~/.config/data
+      input = []
+      output = a.out
+      EOF
+
+      : Mixed Use of Shortcuts and Names
+      :
+      {
+        $* -snf "some text" 987 ~/.config/data --verbose=false >>EOF == 0
+        help = false
+        verbose = false
+        validate = false
+        number = 987
+        scalar = 1.23
+        string = some text
+        maybe = false
+        file = ~/.config/data
+        input = []
+        output = a.out
+        EOF
+
+        $* --validate true -snf -allows-for-dash-at-start 987 --double--dash--file --verbose=false >>EOF == 0
+        help = false
+        verbose = false
+        validate = true
+        number = 987
+        scalar = 1.23
+        string = -allows-for-dash-at-start
+        maybe = false
+        file = --double--dash--file
+        input = []
+        output = a.out
+        EOF
+      }
+    }
+  }
+}
+
+: Positional Arguments
+:
+{
+  : Shortcuts and names are only for list entries
+  :
+  {
+    $* --output=xyz >>EOF != 0
+    ERROR: name access to purely positional option 'output' in '--output=xyz'
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = []
+    output = a.out
+    EOF
+
+    $* --input xyz >>EOF == 0
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = [xyz]
+    output = a.out
+    EOF
+
+    $* --input xyz abc more >>EOF == 0
+    help = false
+    verbose = true
+    validate = false
+    number = 0
+    scalar = 1.23
+    string = initial
+    maybe = false
+    file = false
+    input = [xyz, more]
+    output = abc
+    EOF
+  }
+
+  $* program.exe program.cpp >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = [program.cpp]
+  output = program.exe
+  EOF
+
+  $* program.exe program.cpp main.cpp >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = [program.cpp, main.cpp]
+  output = program.exe
+  EOF
+
+  $* program.exe program.cpp config.cpp main.cpp >>EOF != 0
+  ERROR: unexpected positional argument 'main.cpp'
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = [program.cpp, config.cpp]
+  output = program.exe
+  EOF
+
+  $* --verbose=false program.exe program.cpp >>EOF == 0
+  help = false
+  verbose = false
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = [program.cpp]
+  output = program.exe
+  EOF
+
+  $* --verbose false >>EOF == 0
+  help = false
+  verbose = true
+  validate = false
+  number = 0
+  scalar = 1.23
+  string = initial
+  maybe = false
+  file = false
+  input = []
+  output = false
+  EOF
+
+  $* --verbose=false program.exe -hvf config.cpp program.cpp -ns 123 str >>EOF == 0
+  help = true
+  verbose = true
+  validate = false
+  number = 123
+  scalar = 1.23
+  string = str
+  maybe = false
+  file = config.cpp
+  input = [program.cpp]
+  output = program.exe
+  EOF
+}

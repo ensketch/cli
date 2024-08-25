@@ -1,16 +1,27 @@
 #pragma once
-#include <ensketch/cli/parser.hpp>
+#include <ensketch/cli/parser_entry.hpp>
 
 namespace ensketch::cli {
 
-namespace generic {
+template <typename type, typename option_list>
+concept parser_list_for = true;
 
-template <typename list, typename option_list_type>
-concept parser_list =
-    generic::named_tuple<list> && generic::option_list<option_list_type> &&
-    for_all(type_list_from<list>(),
-            []<typename type> { return parser<type, option_list_type>; });
+template <typename option_list, parser_entry_for<option_list>... parsers>
+struct parser_list : named_tuple<meta::name_list<parsers::prefix()...>,
+                                 std::tuple<parsers...>> {
+  using base = named_tuple<meta::name_list<parsers::prefix()...>,
+                           std::tuple<parsers...>>;
+  using base::base;
 
+  constexpr auto data() const noexcept -> const base& { return *this; }
+  constexpr auto data() noexcept -> base& { return *this; }
+};
+
+template <typename option_list>
+constexpr auto parser_list_from(
+    parser_entry_for<option_list> auto&&... parsers) {
+  return parser_list<option_list, unwrap_ref_decay_t<decltype(parsers)>...>{
+      forward<decltype(parsers)>(parsers)...};
 }
 
 }  // namespace ensketch::cli

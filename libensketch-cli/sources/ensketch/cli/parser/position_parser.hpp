@@ -1,78 +1,72 @@
 #pragma once
-#include <ensketch/cli/parser_error.hpp>
+#include <ensketch/cli/parser_kernel.hpp>
 
 namespace ensketch::cli {
 
-// template <size_t N>
-// struct position {
-//   constexpr position(const char (&n)[N], size_t c = 1) : name{n}, count{c} {}
-//   constexpr position(static_zstring<N> n, size_t c = 1) : name{n}, count{c} {}
-
-//   static_zstring<N> name{};
-//   size_t count{};
-// };
-
-// constexpr size_t undefined = -1;
-
-namespace generic {
-
-template <typename type>
-concept position_scheme = true;
-// requires(const type& scheme, size_t position) {
-//   { scheme(position) } -> convertible_to<czstring>;
-//   { scheme.size() } -> convertible_to<size_t>;
-// };
-
-}  // namespace generic
-
-// template <static_zstring... str>
-// struct basic_position_scheme : static_zstring_list<str...> {
-//   using base_type = static_zstring_list<str...>;
-
-//   constexpr basic_position_scheme() = default;
-
-//   static consteval auto base() { return base_type{}; }
-//   static consteval auto name(size_t position) {
-//     return element<position>(base());
-//   }
-// };
-
-template <generic::position_scheme auto position_scheme,
-          generic::option_list option_list_type>
-struct position_parser {
+template <typename option_list,
+          meta::string_list_instance position_scheme,
+          typename parser>
+struct position_parser : parser {
+  using parser::operator();
   using state_type = void (position_parser::*)(czstring,
                                                arg_list&,
-                                               option_list_type&);
+                                               option_list&);
+  state_type state = &position_parser::parse<0>;
 
-  constexpr void parse(czstring current,
-                       arg_list& args,
-                       option_list_type& options) {
+  static consteval auto scheme() noexcept { return position_scheme{}; }
+
+  position_parser(option_list&, position_scheme, auto&& f)
+      : parser{forward<decltype(f)>(f)} {}
+
+  constexpr void operator()(czstring current,
+                            arg_list& args,
+                            option_list& options) {
     (this->*state)(current, args, options);
   }
 
   template <size_t position>
-  constexpr void parse(czstring current,
-                       arg_list& args,
-                       option_list_type& options) {
-    if constexpr (position < size(position_scheme)) {
-      constexpr auto name = element<position>(position_scheme);
-      parse(value<name>(options), current, args);
+  constexpr void parse(czstring current, arg_list& args, option_list& options) {
+    if constexpr (position < size(scheme())) {
+      constexpr auto name = element<position>(scheme());
+      invoke(*this, current, args, options, value<name>(options.base()));
       state = &position_parser::parse<position + 1>;
     } else {
-      // args.unpop_front();
-      throw parser_error(args, string("position"));
+      args.unpop_front();
+      throw parser_error(
+          current, args,
+          format("unexpected positional argument '{}'", args.front()));
     }
   }
+};
 
-  ///
-  ///
-  static constexpr void parse(instance::attachment auto& option,
-                              czstring current,
-                              arg_list& args) {
-    option.value = current;
+template <typename option_list, typename scheme, typename parser>
+position_parser(option_list&, scheme, parser&&)
+    -> position_parser<option_list, scheme, unwrap_ref_decay_t<parser>>;
+
+struct position_option_parser {
+  template <meta::string name, typename type, typename init>
+  constexpr void operator()(czstring current,
+                            arg_list& args,
+                            auto& options,
+                            pos_entry<name, type, init>) {
+    parse(current, args, value<name>(options.data()));
   }
 
-  state_type state = &position_parser::parse<0>;
+  template <meta::string name, typename type, typename init>
+  constexpr void operator()(czstring current,
+                            arg_list& args,
+                            auto& options,
+                            list_entry<name, type, init>) {
+    auto& v = value<name>(options.data());
+    v.push_back({});
+    parse(current, args, v.back());
+  }
 };
+
+template <meta::string_list_instance position_scheme, typename option_list>
+constexpr auto default_position_parser(option_list& options,
+                                       position_scheme scheme) {
+  return position_parser{options, scheme, position_option_parser{}};
+}
 
 }  // namespace ensketch::cli

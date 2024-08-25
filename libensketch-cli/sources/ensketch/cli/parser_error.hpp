@@ -1,5 +1,5 @@
 #pragma once
-#include <ensketch/cli/utility.hpp>
+#include <ensketch/cli/defaults.hpp>
 
 namespace ensketch::cli {
 
@@ -8,18 +8,19 @@ namespace ensketch::cli {
 /// So, after catching the exception,
 /// it can be used to go on with the parsing.
 ///
-struct parser_error : exception {
+struct parser_error : runtime_error {
+  using base = runtime_error;
+
   parser_error() = default;
 
-  /// Constructor to provide list of arguments and an error message.
-  parser_error(const arg_list& args, const string& text)
-      : state{args}, msg{text} {}
+  parser_error(czstring current, const arg_list& args, const string& text)
+      : base{text}, ptr{current}, state{args} {}
 
-  auto what() const noexcept -> czstring override { return msg.c_str(); }
+  auto current() const noexcept -> czstring { return ptr; }
   auto args() const noexcept -> const arg_list& { return state; }
 
  private:
-  string msg{};
+  czstring ptr{};
   arg_list state{};
 };
 

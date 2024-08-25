@@ -1,5 +1,5 @@
 #pragma once
-#include <ensketch/cli/utility.hpp>
+#include <ensketch/cli/defaults.hpp>
 
 namespace ensketch::cli {
 

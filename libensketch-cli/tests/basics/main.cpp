@@ -1,94 +1,123 @@
-#include <iomanip>
-#include <iostream>
+#include <list>
+#include <print>
+#include <thread>
 //
 #include <ensketch/cli/arg_list.hpp>
+#include <ensketch/cli/default_parser.hpp>
+#include <ensketch/cli/option_entry.hpp>
 #include <ensketch/cli/option_list.hpp>
 #include <ensketch/cli/parser/name_parser.hpp>
 #include <ensketch/cli/parser/position_parser.hpp>
 #include <ensketch/cli/parser/shortcut_parser.hpp>
+#include <ensketch/cli/parser_entry.hpp>
 #include <ensketch/cli/parser_kernel.hpp>
 #include <ensketch/cli/parser_list.hpp>
 
-using namespace std;
-// using ensketch::cli::arg_list;
-using namespace ensketch::cli;
-// namespace xstd = ensketch::xstd;
+// static_assert(cli::generic_option_entry<decltype(cli::flag<"help">())>);
+// static_assert(
+//     cli::generic_option_entry<decltype(cli::flag<"verbose", true>())>);
+// static_assert(cli::generic_option_entry<
+//               decltype(cli::data<"input", cli::czstring, nullptr>())>);
+// static_assert(
+//     cli::generic_option_entry<decltype(cli::data<"number", int, -1>())>);
+// static_assert(
+//     cli::generic_option_entry<decltype(cli::data<"string", std::string_view>(
+//         [] { return std::string_view{"default"}; }))>);
+// static_assert(
+//     cli::generic_option_entry<decltype(cli::data<"crazy", std::thread>([] {
+//       return std::thread{};
+//     }))>);
 
-template <static_zstring name,
-          static_zstring description,
-          typename type = czstring>
-using var = attachment<name, description, type>;
-
-using options_type = option_list<flag<"help", "Print the help message.">,
-                                 flag<"version", "Print the program version.">,
-                                 flag<"verbose", "Verbose output.">,
-                                 var<"key", "Set the key of the program.", int>,
-                                 var<"input", "Set the input file path.">,
-                                 var<"output", "Set the output file path.">>;
-
-constexpr auto position_scheme = static_zstring_list<"output", "input">{};
-
-constexpr auto binding_scheme = type_list<char_binding<'v', "verbose">,
-                                          char_binding<'h', "help">,
-                                          char_binding<'i', "input">,
-                                          char_binding<'o', "output">>{};
-
-using parser_list =
-    named_tuple<static_identifier_list<"--", "-", "">,
-                std::tuple<name_parser<options_type>,
-                           shortcut_parser<binding_scheme, options_type>,
-                           position_parser<position_scheme, options_type>>>;
-
-namespace ensketch::cli {
-namespace generic {
 template <typename type>
-concept command = requires {
-  { type::name() } -> convertible_to<czstring>;
-  { type::description() } -> convertible_to<czstring>;
+struct std::formatter<std::vector<type>, char> {
+  template <class context>
+  constexpr auto parse(context& ctx) -> context::iterator {
+    return ctx.begin();
+  }
+  template <class context>
+  auto format(const vector<type>& data,
+              context& ctx) const -> context::iterator {
+    string str{};
+    if (!data.empty()) {
+      str += std::format("{}", data.front());
+      for (size_t i = 1; i < data.size(); ++i)
+        str += std::format(", {}", data[i]);
+    }
+    return ranges::copy(std::format("[{}]", str), ctx.out()).out;
+  }
 };
-template <typename list>
-concept command_list = generic::named_tuple<list> &&
-                       for_all(type_list_from<list>(),
-                               []<typename type> { return command<type>; });
-}  // namespace generic
-template <generic::command... commands>
-using command_list = named_tuple<static_identifier_list<commands::name()...>,
-                                 std::tuple<commands...>>;
 
-constexpr void parse(generic::command_list auto& commands,
-                     czstring current,
-                     arg_list& args) {
-  constexpr auto command_tree = static_radix_tree_from(commands.names);
-  const auto parsed = visit(command_tree, current, [&]<static_zstring command> {
-    value<command>(commands)(args);
-  });
-  if (parsed) return;
-  args.unpop_front();
-  throw parser_error(args, string("Unknown command '") + args.front() + "'.");
-}
+template <typename type>
+struct std::formatter<std::optional<type>, char> {
+  template <class context>
+  constexpr auto parse(context& ctx) -> context::iterator {
+    return ctx.begin();
+  }
+  template <class context>
+  auto format(const optional<type>& data,
+              context& ctx) const -> context::iterator {
+    string str{};
+    if (data)
+      str = std::format("{}", data.value());
+    else
+      str = "false";
+    return ranges::copy(str, ctx.out()).out;
+  }
+};
 
-}  // namespace ensketch::cli
+template <>
+struct std::formatter<std::filesystem::path, char> {
+  template <class context>
+  constexpr auto parse(context& ctx) -> context::iterator {
+    return ctx.begin();
+  }
+  template <class context>
+  auto format(const filesystem::path& path,
+              context& ctx) const -> context::iterator {
+    return ranges::copy(path.string(), ctx.out()).out;
+  }
+};
 
 int main(int argc, char* argv[]) {
-  arg_list args{argc, argv};
-  options_type options{};
-  parser_list parsers{};
-  parse(args, options, parsers);
+  namespace cli = ensketch::cli;
+  using cli::bind;
+  using cli::flag;
+  using cli::list;
+  using cli::pos;
+  using cli::var;
 
-  cout << "usage:\n" << argv[0] << " [options]";
-  for_each(position_scheme, []<auto name> { cout << " <" << name << ">"; });
-  cout << endl;
+  auto options = cli::option_list{
+      flag<"help">(),
+      flag<"verbose", true>(),
+      var<"validate", bool>(),
+      var<"number", int>(),
+      var<"scalar", float, 1.23f>(),
+      var<"string", std::string_view, cli::meta::string{"initial"}>(),
+      var<"maybe", std::optional<int>>(),
+      var<"file", std::optional<std::filesystem::path>>(),
+      list<"input", std::filesystem::path>(),
+      pos<"output">([] -> std::filesystem::path { return "a.out"; }),
+  };
 
-  static_assert(!generic::reducible_named_tuple<decltype(options.tuple())>);
+  constexpr auto position_scheme =
+      cli::meta::string_list<"output", "input", "input">{};
+  constexpr auto bindings = cli::shortcuts(
+      bind<'h', "help">, bind<'v', "verbose">, bind<'n', "number">,
+      bind<'s', "string">, bind<'f', "file">);
 
-  ensketch::xstd::for_each(options.tuple(), [&](auto& option) {
-    cout << left << setw(20) << option.name() << '\t' << option.description()
-         << endl;
+  const auto print_options = [&options] {
+    for_each(options.data(), []<auto name>(auto&& value) {
+      std::println("{} = {}", name, std::forward<decltype(value)>(value));
+    });
+  };
 
-    // for_each(parsers, [&]<static_zstring prefix>(auto& parser) {
-    //   cout << prefix << option.name() << endl;
-    // });
+  try {
+    parse({argc, argv}, options, bindings, position_scheme);
+  } catch (cli::parser_error& e) {
+    std::println("ERROR: {}", e.what());
+    print_options();
+    return -1;
+  }
 
-    cout << boolalpha << "value = " << option.value << endl << endl;
-  });
+  print_options();
 }
