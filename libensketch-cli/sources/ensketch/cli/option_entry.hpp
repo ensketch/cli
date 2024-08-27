@@ -13,6 +13,16 @@ concept generic_option_entry =
       { type::name() } -> meta::string_instance;
     };
 
+template <generic_option_entry option_entry>
+consteval auto name(option_entry) noexcept {
+  return option_entry::name();
+}
+
+template <generic_option_entry option_entry>
+consteval auto type(option_entry) noexcept {
+  return meta::as_value<typename option_entry::type>;
+}
+
 template <meta::string str, bool init = false>
 struct flag_entry {
   using type = bool;
@@ -24,6 +34,12 @@ template <meta::string name, bool initial = false>
 constexpr auto flag() noexcept {
   return flag_entry<name, initial>{};
 }
+
+template <typename type>
+concept flag_option =
+    matches<type, []<meta::string name, bool init>(flag_entry<name, init>) {
+      return meta::as_signature<true>;
+    }>;
 
 template <meta::string str, typename t, initializer_for<t> initializer>
 struct var_entry : initializer {
@@ -53,6 +69,12 @@ constexpr auto var() noexcept {
   return var<name, type>([] -> type { return init; });
 }
 
+template <typename type>
+concept var_option =
+    matches<type,
+            []<meta::string name, typename t, typename init>(
+                var_entry<name, t, init>) { return meta::as_signature<true>; }>;
+
 template <meta::string str, typename t, initializer_for<t> initializer>
 struct pos_entry : initializer {
   using type = t;
@@ -81,6 +103,12 @@ constexpr auto pos() noexcept {
   return pos<name, type>([] -> type { return init; });
 }
 
+template <typename type>
+concept pos_option =
+    matches<type,
+            []<meta::string name, typename t, typename init>(
+                pos_entry<name, t, init>) { return meta::as_signature<true>; }>;
+
 template <meta::string str, typename t, initializer_for<vector<t>> initializer>
 struct list_entry : initializer {
   using type = vector<t>;
@@ -106,5 +134,12 @@ template <meta::string name, default_initializable type>
 constexpr auto list() noexcept {
   return list<name, type>([] { return vector<type>{}; });
 }
+
+template <typename type>
+concept list_option = matches<type,
+                              []<meta::string name, typename t, typename init>(
+                                  list_entry<name, t, init>) {
+                                return meta::as_signature<true>;
+                              }>;
 
 }  // namespace ensketch::cli

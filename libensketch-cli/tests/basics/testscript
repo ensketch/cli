@@ -420,7 +420,7 @@
   :
   {
     $* --number nrtd >>EOF != 0
-    ERROR: invalid integral value 'nrtd'
+    ERROR: invalid integer value 'nrtd' for 'number'
     help = false
     verbose = true
     validate = false
@@ -478,7 +478,7 @@
   EOF
 
   $* --scalar nrtd >>EOF != 0
-  ERROR: invalid floating-point value 'nrtd'
+  ERROR: invalid floating-point value 'nrtd' for 'scalar'
   help = false
   verbose = true
   validate = false
@@ -822,7 +822,7 @@
   :
   {
     $* --output=xyz >>EOF != 0
-    ERROR: name access to purely positional option 'output' in '--output=xyz'
+    ERROR: forbidden access to purely positional option 'output' in '--output=xyz'
     help = false
     verbose = true
     validate = false

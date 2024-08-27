@@ -24,4 +24,15 @@ struct parser_error : runtime_error {
   arg_list state{};
 };
 
+struct parser_error_base {
+  virtual auto what() -> string { return ""; }
+  czstring current{};
+  arg_list args{};
+};
+struct unknown_option_name : parser_error_base {
+  auto what() -> string override {
+    return format("unknown option name '{}' in '{}'", current, args.previous());
+  }
+};
+
 }  // namespace ensketch::cli

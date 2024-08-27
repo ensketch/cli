@@ -60,6 +60,10 @@ struct arg_list {
   ///
   constexpr auto front() const noexcept -> czstring { return values[index]; }
 
+  constexpr auto previous() const noexcept -> czstring {
+    return values[index - 1];
+  }
+
   /// Same as 'front' and provided for consistency.
   ///
   constexpr auto peek_front() const noexcept -> czstring {

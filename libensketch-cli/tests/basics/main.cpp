@@ -4,6 +4,7 @@
 //
 #include <ensketch/cli/arg_list.hpp>
 #include <ensketch/cli/default_parser.hpp>
+#include <ensketch/cli/default_parser_primitives.hpp>
 #include <ensketch/cli/option_entry.hpp>
 #include <ensketch/cli/option_list.hpp>
 #include <ensketch/cli/parser/name_parser.hpp>
@@ -78,6 +79,22 @@ struct std::formatter<std::filesystem::path, char> {
   }
 };
 
+// struct rule1 {
+//   constexpr auto operator()(int) const noexcept { std::println("rule 1"); }
+// };
+// inline constexpr auto rule2 = [](int) { std::println("rule 2"); };
+// inline constexpr auto optional_rule = [](this auto&& self, std::optional<int>) {
+//   std::println("optional rule");
+//   std::invoke(std::forward<decltype(self)>(self), int{});
+// };
+// constexpr auto match1 = cli::match{rule1{}, optional_rule};
+// constexpr auto match2 = cli::match{rule2, optional_rule};
+// match1(0);
+// match1(std::make_optional(0));
+// std::println("------");
+// match2(0);
+// match2(std::make_optional(0));
+
 int main(int argc, char* argv[]) {
   namespace cli = ensketch::cli;
   using cli::bind;
@@ -85,6 +102,29 @@ int main(int argc, char* argv[]) {
   using cli::list;
   using cli::pos;
   using cli::var;
+
+  {
+    const auto result = cli::parse_type(cli::meta::as_value<bool>, "true");
+    assert(result);
+    assert(result.value() == true);
+  }
+  {
+    const auto result = cli::parse_type(cli::meta::as_value<bool>, "tru");
+    assert(!result);
+    auto check =
+        result.error() | cli::match{
+                             [](auto) { return false; },
+                             [](cli::invalid_argument) { return true; },
+                         };
+    assert(check);
+  }
+  {
+    const auto result =
+        cli::parse_type(cli::meta::as_value<std::optional<int>>, "123");
+    assert(result);
+    assert(result.value() == 123);
+    // assert(*result.value() == 123);
+  }
 
   auto options = cli::option_list{
       flag<"help">(),

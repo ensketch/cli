@@ -12,7 +12,7 @@ constexpr void parse(arg_list args,
                      auto position_scheme) {
   parse(args, options,
         parser_list_from<option_list>(
-            parser<"--">(default_name_parser()),
+            parser<"--">(default_name_parser(options)),
             parser<"-">(default_shortcut_parser(options, bindings)),
             parser<"">(default_position_parser(options, position_scheme))));
 }
