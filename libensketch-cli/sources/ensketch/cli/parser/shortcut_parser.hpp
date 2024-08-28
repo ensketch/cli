@@ -33,8 +33,8 @@ struct shortcut_parser : parser {
     for (auto arg = current; *arg; ++arg) {
       const auto valid = for_each_until(scheme(), [&]<typename binding> {
         if (*arg != binding::character) return false;
-        invoke(*this, args_backup.front(), arg, args, options,
-               value<binding::name>(options.base()));
+        std::invoke(*this, args_backup.front(), arg, args, options,
+                    value<binding::name>(options.base()));
         return true;
       });
       if (valid) continue;
@@ -50,12 +50,12 @@ shortcut_parser(option_list&, scheme, parser&&)
     -> shortcut_parser<option_list, scheme, std::unwrap_ref_decay_t<parser>>;
 
 struct shortcut_option_parser {
-  template <generic_option_entry option_entry>
-  constexpr void operator()(czstring arg,
+  constexpr void operator()(this auto&& self,
+                            czstring arg,
                             czstring current,
                             arg_list& args,
                             auto& options,
-                            option_entry& entry) {
+                            var_option auto entry) {
     if (!args) {
       args.unpop_front();
       throw parser_error(
@@ -63,8 +63,44 @@ struct shortcut_option_parser {
           format("missing argument after '{}' for '{}' in shortcut '{}'",
                  args.front(), *current, arg));
     }
-    current = args.pop_front();
-    parse(current, args, value<option_entry::name()>(options.data()));
+    auto it = args.pop_front();
+    if (!std::forward<decltype(self)>(self).parse_value(
+            it, value<name(entry)>(options.data()))) {
+      args.unpop_front();
+      throw parser_error(
+          current, args,
+          std::format(
+              "invalid {} value '{}' for shortcut '{}' of option '{}' in '{}'",
+              as_string<meta::as_type<type(entry)>>, it, *current, name(entry),
+              arg));
+    }
+  }
+
+  constexpr void operator()(this auto&& self,
+                            czstring arg,
+                            czstring current,
+                            arg_list& args,
+                            auto& options,
+                            list_option auto entry) {
+    if (!args) {
+      args.unpop_front();
+      throw parser_error(
+          current, args,
+          format("missing argument after '{}' for '{}' in shortcut '{}'",
+                 args.front(), *current, arg));
+    }
+    auto it = args.pop_front();
+    auto& v = value<name(entry)>(options.data());
+    v.push_back({});
+    if (!std::forward<decltype(self)>(self).parse_value(it, v.back())) {
+      args.unpop_front();
+      throw parser_error(
+          current, args,
+          std::format(
+              "invalid {} value '{}' for shortcut '{}' of option '{}' in '{}'",
+              as_string<meta::as_type<type(entry)>>, it, *current, name(entry),
+              arg));
+    }
   }
 
   template <meta::string name, bool init>
@@ -91,44 +127,9 @@ struct shortcut_option_parser {
 };
 
 constexpr auto default_shortcut_parser(auto& options, auto bindings) noexcept {
-  return shortcut_parser{options, bindings, shortcut_option_parser{}};
+  return shortcut_parser{
+      options, bindings,
+      match{default_value_parser(), shortcut_option_parser{}}};
 }
-
-// template <auto binding_scheme, generic::option_list option_list_type>
-// struct shortcut_parser {
-//   static consteval auto bindings_lut_from() {
-//     using function = void (*)(czstring, arg_list&, option_list_type&);
-//     array<function, 256> bindings{};
-
-//     for_each(binding_scheme, [&]<typename binding> {
-//       bindings[binding::character] = [](czstring current, arg_list& args,
-//                                         option_list_type& options) {
-//         ensketch::cli::parse(value<binding::identifier>(options), current,
-//                              args);
-//       };
-//     });
-
-//     return bindings;
-//   }
-
-//   static constexpr void parse(czstring current,
-//                               arg_list& args,
-//                               option_list_type& options) {
-//     constexpr auto bindings = bindings_lut_from();
-
-//     auto args_backup = args;
-//     for (auto arg = current; *arg; ++arg) {
-//       const auto parse_function = bindings[*arg];
-//       if (parse_function) {
-//         parse_function(arg + 1, args, options);
-//         continue;
-//       }
-//       args_backup.unpop_front();
-//       throw parser_error(args_backup, string("Unknown short option '") + *arg +
-//                                           "' in '" + args_backup.front() +
-//                                           "'.");
-//     }
-//   }
-// };
 
 }  // namespace ensketch::cli

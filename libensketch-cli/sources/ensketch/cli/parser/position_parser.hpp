@@ -1,4 +1,5 @@
 #pragma once
+#include <ensketch/cli/parser/value_parser.hpp>
 #include <ensketch/cli/parser_kernel.hpp>
 
 namespace ensketch::cli {
@@ -21,14 +22,15 @@ struct position_parser : parser {
   constexpr void operator()(czstring current,
                             arg_list& args,
                             option_list& options) {
-    (this->*state)(current, args, options);
+    // (this->*state)(current, args, options);
+    std::invoke(state, this, current, args, options);
   }
 
   template <size_t position>
   constexpr void parse(czstring current, arg_list& args, option_list& options) {
     if constexpr (position < size(scheme())) {
       constexpr auto name = element<position>(scheme());
-      invoke(*this, current, args, options, value<name>(options.base()));
+      std::invoke(*this, current, args, options, value<name>(options.base()));
       state = &position_parser::parse<position + 1>;
     } else {
       args.unpop_front();
@@ -44,29 +46,43 @@ position_parser(option_list&, scheme, parser&&)
     -> position_parser<option_list, scheme, std::unwrap_ref_decay_t<parser>>;
 
 struct position_option_parser {
-  template <meta::string name, typename type, typename init>
-  constexpr void operator()(czstring current,
+  constexpr void operator()(this auto&& self,
+                            czstring current,
                             arg_list& args,
                             auto& options,
-                            pos_entry<name, type, init>) {
-    parse(current, args, value<name>(options.data()));
+                            pos_option auto entry) {
+    if (!std::forward<decltype(self)>(self).parse_value(
+            current, value<name(entry)>(options.data()))) {
+      args.unpop_front();
+      throw parser_error(
+          current, args,
+          format("invalid {} value '{}' in positional argument for '{}'",
+                 as_string<meta::as_type<type(entry)>>, current, name(entry)));
+    }
   }
 
-  template <meta::string name, typename type, typename init>
-  constexpr void operator()(czstring current,
+  constexpr void operator()(this auto&& self,
+                            czstring current,
                             arg_list& args,
                             auto& options,
-                            list_entry<name, type, init>) {
-    auto& v = value<name>(options.data());
+                            list_option auto entry) {
+    auto& v = value<name(entry)>(options.data());
     v.push_back({});
-    parse(current, args, v.back());
+    if (!std::forward<decltype(self)>(self).parse_value(current, v.back())) {
+      args.unpop_front();
+      throw parser_error(
+          current, args,
+          format("invalid {} value '{}' in positional argument for '{}'",
+                 as_string<meta::as_type<type(entry)>>, current, name(entry)));
+    }
   }
 };
 
 template <meta::string_list_instance position_scheme, typename option_list>
 constexpr auto default_position_parser(option_list& options,
                                        position_scheme scheme) {
-  return position_parser{options, scheme, position_option_parser{}};
+  return position_parser{
+      options, scheme, match{default_value_parser(), position_option_parser{}}};
 }
 
 }  // namespace ensketch::cli
