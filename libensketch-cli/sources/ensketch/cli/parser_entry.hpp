@@ -5,7 +5,7 @@ namespace ensketch::cli {
 
 template <typename type, typename option_list>
 concept parser_entry_for =
-    invocable<type, czstring, arg_list&, option_list&> && requires {
+    std::invocable<type, czstring, arg_list&, option_list&> && requires {
       { type::prefix() } -> meta::string_instance;
     };
 
@@ -17,8 +17,8 @@ struct parser_entry : parser {
 
 template <meta::string prefix>
 constexpr auto parser(auto&& f) {
-  return parser_entry<prefix, unwrap_ref_decay_t<decltype(f)>>{
-      forward<decltype(f)>(f)};
+  return parser_entry<prefix, std::unwrap_ref_decay_t<decltype(f)>>{
+      std::forward<decltype(f)>(f)};
 }
 
 }  // namespace ensketch::cli

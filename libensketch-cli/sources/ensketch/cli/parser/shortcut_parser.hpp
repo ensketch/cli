@@ -23,7 +23,7 @@ struct shortcut_parser : parser {
   static consteval auto scheme() noexcept { return binding_scheme{}; }
 
   shortcut_parser(option_list&, binding_scheme, auto&& f)
-      : parser{forward<decltype(f)>(f)} {}
+      : parser{std::forward<decltype(f)>(f)} {}
 
   constexpr void operator()(czstring current,
                             arg_list& args,
@@ -47,7 +47,7 @@ struct shortcut_parser : parser {
 
 template <typename option_list, typename scheme, typename parser>
 shortcut_parser(option_list&, scheme, parser&&)
-    -> shortcut_parser<option_list, scheme, unwrap_ref_decay_t<parser>>;
+    -> shortcut_parser<option_list, scheme, std::unwrap_ref_decay_t<parser>>;
 
 struct shortcut_option_parser {
   template <generic_option_entry option_entry>

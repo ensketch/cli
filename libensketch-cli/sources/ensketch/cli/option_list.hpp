@@ -24,12 +24,12 @@ struct option_list {
   constexpr option_list(auto&&... opts)
     requires(sizeof...(opts) == sizeof...(options))
       : option_list(meta::index_list_from_iota<sizeof...(opts)>(),
-                    forward<decltype(opts)>(opts)...) {}
+                    std::forward<decltype(opts)>(opts)...) {}
 
   template <size_t... indices>
   constexpr option_list(meta::index_list<indices...>, auto&&... opts)
-      : _init{forward<decltype(opts)>(opts)...},
-        _data{invoke(get<indices>(_init))...} {}
+      : _init{std::forward<decltype(opts)>(opts)...},
+        _data{std::invoke(get<indices>(_init))...} {}
 
   constexpr auto data() const noexcept -> const data_type& { return _data; }
   constexpr auto data() noexcept -> data_type& { return _data; }
@@ -42,6 +42,6 @@ struct option_list {
 };
 
 template <typename... options>
-option_list(options&&...) -> option_list<unwrap_ref_decay_t<options>...>;
+option_list(options&&...) -> option_list<std::unwrap_ref_decay_t<options>...>;
 
 }  // namespace ensketch::cli

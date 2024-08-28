@@ -15,12 +15,12 @@ struct name_parser : option_parser {
                             arg_list& args,
                             option_list& options) {
     bool parsed = false;
-    const auto prefix_matched =
-        traverse(meta::radix_tree_from(option_list::names()),  //
-                 current, [&]<meta::string prefix>(czstring tail) {
-                   parsed = invoke(forward<decltype(self)>(self), tail, args,
-                                   options, value<prefix>(options.base()));
-                 });
+    const auto prefix_matched = traverse(
+        meta::radix_tree_from(option_list::names()),  //
+        current, [&]<meta::string prefix>(czstring tail) {
+          parsed = std::invoke(std::forward<decltype(self)>(self), tail, args,
+                               options, value<prefix>(options.base()));
+        });
     if (prefix_matched && parsed) return;
 
     args.unpop_front();
@@ -42,7 +42,7 @@ inline constexpr auto name_parse_flag = [](this auto&& self,
   if (*current != '=') return false;
   ++current;
 
-  if (!forward<decltype(self)>(self).parse_value(
+  if (!std::forward<decltype(self)>(self).parse_value(
           current, value<name(entry)>(options.data()))) {
     args.unpop_front();
     throw parser_error(
@@ -71,7 +71,7 @@ inline constexpr auto name_parse_var = [](this auto&& self,
   if (*current == '\0') {
     if (args) {
       current = args.pop_front();
-      if (!forward<decltype(self)>(self).parse_value(
+      if (!std::forward<decltype(self)>(self).parse_value(
               current, value<name(entry)>(options.data()))) {
         args.unpop_front();
         throw parser_error(current, args,
@@ -97,7 +97,7 @@ inline constexpr auto name_parse_var = [](this auto&& self,
   }
   if (*current != '=') return false;
   ++current;
-  if (!forward<decltype(self)>(self).parse_value(
+  if (!std::forward<decltype(self)>(self).parse_value(
           current, value<name(entry)>(options.data()))) {
     args.unpop_front();
     throw parser_error(current, args,
@@ -145,7 +145,7 @@ inline constexpr auto name_parse_list = [](this auto&& self,
   }
   current = args.pop_front();
   value<name(entry)>(options.data()).push_back({});
-  if (!forward<decltype(self)>(self).parse_value(
+  if (!std::forward<decltype(self)>(self).parse_value(
           current, value<name(entry)>(options.data()).back())) {
     args.unpop_front();
     throw parser_error(current, args,
@@ -165,7 +165,7 @@ inline constexpr auto name_parse_list = [](this auto&& self,
 
 template <typename option_list>
 constexpr auto default_name_parser(option_list&) noexcept {
-  return name_parser{match{default_value_parser(), parse_type, name_parse_flag,
+  return name_parser{match{default_value_parser(), name_parse_flag,
                            name_parse_var, name_parse_pos, name_parse_list}};
 }
 

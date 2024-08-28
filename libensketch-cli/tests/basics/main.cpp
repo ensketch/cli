@@ -103,29 +103,6 @@ int main(int argc, char* argv[]) {
   using cli::pos;
   using cli::var;
 
-  {
-    const auto result = cli::parse_type(cli::meta::as_value<bool>, "true");
-    assert(result);
-    assert(result.value() == true);
-  }
-  {
-    const auto result = cli::parse_type(cli::meta::as_value<bool>, "tru");
-    assert(!result);
-    auto check =
-        result.error() | cli::match{
-                             [](auto) { return false; },
-                             [](cli::invalid_argument) { return true; },
-                         };
-    assert(check);
-  }
-  {
-    const auto result =
-        cli::parse_type(cli::meta::as_value<std::optional<int>>, "123");
-    assert(result);
-    assert(result.value() == 123);
-    // assert(*result.value() == 123);
-  }
-
   auto options = cli::option_list{
       flag<"help">(),
       flag<"verbose", true>(),

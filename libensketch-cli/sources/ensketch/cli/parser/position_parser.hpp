@@ -16,7 +16,7 @@ struct position_parser : parser {
   static consteval auto scheme() noexcept { return position_scheme{}; }
 
   position_parser(option_list&, position_scheme, auto&& f)
-      : parser{forward<decltype(f)>(f)} {}
+      : parser{std::forward<decltype(f)>(f)} {}
 
   constexpr void operator()(czstring current,
                             arg_list& args,
@@ -41,7 +41,7 @@ struct position_parser : parser {
 
 template <typename option_list, typename scheme, typename parser>
 position_parser(option_list&, scheme, parser&&)
-    -> position_parser<option_list, scheme, unwrap_ref_decay_t<parser>>;
+    -> position_parser<option_list, scheme, std::unwrap_ref_decay_t<parser>>;
 
 struct position_option_parser {
   template <meta::string name, typename type, typename init>

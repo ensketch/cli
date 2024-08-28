@@ -20,8 +20,9 @@ struct parser_list : named_tuple<meta::name_list<parsers::prefix()...>,
 template <typename option_list>
 constexpr auto parser_list_from(
     parser_entry_for<option_list> auto&&... parsers) {
-  return parser_list<option_list, unwrap_ref_decay_t<decltype(parsers)>...>{
-      forward<decltype(parsers)>(parsers)...};
+  return parser_list<option_list,
+                     std::unwrap_ref_decay_t<decltype(parsers)>...>{
+      std::forward<decltype(parsers)>(parsers)...};
 }
 
 }  // namespace ensketch::cli

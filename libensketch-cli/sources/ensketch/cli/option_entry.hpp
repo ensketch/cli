@@ -5,7 +5,7 @@ namespace ensketch::cli {
 
 template <typename type, typename init>
 concept initializer_for =
-    invocable<type> && same_as<init, invoke_result_t<type>>;
+    std::invocable<type> && std::same_as<init, std::invoke_result_t<type>>;
 
 template <typename type>
 concept generic_option_entry =
@@ -50,16 +50,17 @@ struct var_entry : initializer {
 
 template <meta::string name, typename type, initializer_for<type> initializer>
 constexpr auto var(initializer&& init) noexcept {
-  return var_entry<name, type, unwrap_ref_decay_t<initializer>>{
-      forward<initializer>(init)};
+  return var_entry<name, type, std::unwrap_ref_decay_t<initializer>>{
+      std::forward<initializer>(init)};
 }
 
-template <meta::string name, invocable initializer>
+template <meta::string name, std::invocable initializer>
 constexpr auto var(initializer&& init) noexcept {
-  return var<name, invoke_result_t<initializer>>(forward<initializer>(init));
+  return var<name, std::invoke_result_t<initializer>>(
+      forward<initializer>(init));
 }
 
-template <meta::string name, default_initializable type>
+template <meta::string name, std::default_initializable type>
 constexpr auto var() noexcept {
   return var<name, type>([] { return type{}; });
 }
@@ -84,16 +85,17 @@ struct pos_entry : initializer {
 
 template <meta::string name, typename type, initializer_for<type> initializer>
 constexpr auto pos(initializer&& init) noexcept {
-  return pos_entry<name, type, unwrap_ref_decay_t<initializer>>{
-      forward<initializer>(init)};
+  return pos_entry<name, type, std::unwrap_ref_decay_t<initializer>>{
+      std::forward<initializer>(init)};
 }
 
-template <meta::string name, invocable initializer>
+template <meta::string name, std::invocable initializer>
 constexpr auto pos(initializer&& init) noexcept {
-  return pos<name, invoke_result_t<initializer>>(forward<initializer>(init));
+  return pos<name, std::invoke_result_t<initializer>>(
+      std::forward<initializer>(init));
 }
 
-template <meta::string name, default_initializable type>
+template <meta::string name, std::default_initializable type>
 constexpr auto pos() noexcept {
   return pos<name, type>([] { return type{}; });
 }
@@ -109,30 +111,32 @@ concept pos_option =
             []<meta::string name, typename t, typename init>(
                 pos_entry<name, t, init>) { return meta::as_signature<true>; }>;
 
-template <meta::string str, typename t, initializer_for<vector<t>> initializer>
+template <meta::string str,
+          typename t,
+          initializer_for<std::vector<t>> initializer>
 struct list_entry : initializer {
-  using type = vector<t>;
+  using type = std::vector<t>;
   using initializer::operator();
   static constexpr auto name() noexcept { return str; }
 };
 
 template <meta::string name,
           typename type,
-          initializer_for<vector<type>> initializer>
+          initializer_for<std::vector<type>> initializer>
 constexpr auto list(initializer&& init) noexcept {
-  return list_entry<name, type, unwrap_ref_decay_t<initializer>>{
-      forward<initializer>(init)};
+  return list_entry<name, type, std::unwrap_ref_decay_t<initializer>>{
+      std::forward<initializer>(init)};
 }
 
-template <meta::string name, invocable initializer>
+template <meta::string name, std::invocable initializer>
 constexpr auto list(initializer&& init) noexcept {
-  return list<name, typename invoke_result_t<initializer>::value_type>(
+  return list<name, typename std::invoke_result_t<initializer>::value_type>(
       forward<initializer>(init));
 }
 
-template <meta::string name, default_initializable type>
+template <meta::string name, std::default_initializable type>
 constexpr auto list() noexcept {
-  return list<name, type>([] { return vector<type>{}; });
+  return list<name, type>([] { return std::vector<type>{}; });
 }
 
 template <typename type>

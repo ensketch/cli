@@ -1,4 +1,5 @@
 #pragma once
+#include <charconv>
 #include <expected>
 //
 #include <ensketch/xstd/meta/radix_tree.hpp>
@@ -11,7 +12,12 @@
 
 namespace ensketch::cli {
 
-using namespace std;
+// using namespace std;
+
+using std::format;
+using std::optional;
+using std::string_view;
+
 using namespace xstd;
 
 }  // namespace ensketch::cli

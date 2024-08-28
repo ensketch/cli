@@ -4,7 +4,7 @@
 
 namespace ensketch::cli {
 
-constexpr void parse(czstring str, int& out) {
+inline void parse(czstring str, int& out) {
   std::stringstream input{str};
   input >> out;
   if (!input)
@@ -40,47 +40,50 @@ constexpr void parse(czstring current, arg_list& args, bool& out) {
     args.unpop_front();
     throw parser_error(
         current, args,
-        format("invalid boolean value '{}' in '{}'", view, args.front()));
-  }
-}
-
-constexpr void parse(czstring current, arg_list& args, integral auto& out) {
-  string_view view{current};
-  auto [ptr, ec] = std::from_chars(view.data(), view.data() + view.size(), out);
-  if (ec == std::errc()) {
-    if (ptr == view.end()) return;
-    args.unpop_front();
-    throw parser_error(current, args,
-                       format("invalid integral value '{}'", view));
-  } else if (ec == std::errc::invalid_argument) {
-    args.unpop_front();
-    throw parser_error(current, args,
-                       format("invalid integral value '{}'", view));
-  } else if (ec == std::errc::result_out_of_range) {
-    args.unpop_front();
-    throw parser_error(current, args,
-                       format("out-of-range integral value '{}'", view));
+        std::format("invalid boolean value '{}' in '{}'", view, args.front()));
   }
 }
 
 constexpr void parse(czstring current,
                      arg_list& args,
-                     floating_point auto& out) {
+                     std::integral auto& out) {
   string_view view{current};
   auto [ptr, ec] = std::from_chars(view.data(), view.data() + view.size(), out);
   if (ec == std::errc()) {
     if (ptr == view.end()) return;
     args.unpop_front();
     throw parser_error(current, args,
-                       format("invalid floating-point value '{}'", view));
+                       std::format("invalid integral value '{}'", view));
   } else if (ec == std::errc::invalid_argument) {
     args.unpop_front();
     throw parser_error(current, args,
-                       format("invalid floating-point value '{}'", view));
+                       std::format("invalid integral value '{}'", view));
   } else if (ec == std::errc::result_out_of_range) {
     args.unpop_front();
     throw parser_error(current, args,
-                       format("out-of-range floating-point value '{}'", view));
+                       std::format("out-of-range integral value '{}'", view));
+  }
+}
+
+constexpr void parse(czstring current,
+                     arg_list& args,
+                     std::floating_point auto& out) {
+  string_view view{current};
+  auto [ptr, ec] = std::from_chars(view.data(), view.data() + view.size(), out);
+  if (ec == std::errc()) {
+    if (ptr == view.end()) return;
+    args.unpop_front();
+    throw parser_error(current, args,
+                       std::format("invalid floating-point value '{}'", view));
+  } else if (ec == std::errc::invalid_argument) {
+    args.unpop_front();
+    throw parser_error(current, args,
+                       std::format("invalid floating-point value '{}'", view));
+  } else if (ec == std::errc::result_out_of_range) {
+    args.unpop_front();
+    throw parser_error(
+        current, args,
+        std::format("out-of-range floating-point value '{}'", view));
   }
 }
 
@@ -88,10 +91,12 @@ template <typename type>
 constexpr void parse(czstring current, arg_list& args, optional<type>& out) {
   type t{};
   parse(current, args, t);
-  out = make_optional(t);
+  out = std::make_optional(t);
 }
 
-constexpr void parse(czstring current, arg_list& args, filesystem::path& path) {
+constexpr void parse(czstring current,
+                     arg_list& args,
+                     std::filesystem::path& path) {
   path = current;
 }
 
@@ -119,7 +124,7 @@ constexpr void parse(arg_list args,
     args.unpop_front();
     throw parser_error(
         current, args,
-        format("no matching parser rule for '{}'", args.front()));
+        std::format("no matching parser rule for '{}'", args.front()));
   }
 }
 

@@ -8,10 +8,8 @@ namespace ensketch::cli {
 /// So, after catching the exception,
 /// it can be used to go on with the parsing.
 ///
-struct parser_error : runtime_error {
+struct parser_error : std::runtime_error {
   using base = runtime_error;
-
-  parser_error() = default;
 
   parser_error(czstring current, const arg_list& args, const string& text)
       : base{text}, ptr{current}, state{args} {}
@@ -31,7 +29,8 @@ struct parser_error_base {
 };
 struct unknown_option_name : parser_error_base {
   auto what() -> string override {
-    return format("unknown option name '{}' in '{}'", current, args.previous());
+    return std::format("unknown option name '{}' in '{}'", current,
+                       args.previous());
   }
 };
 
