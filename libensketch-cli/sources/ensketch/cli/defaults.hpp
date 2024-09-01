@@ -2,6 +2,7 @@
 #include <charconv>
 #include <expected>
 //
+#include <ensketch/xstd/meta/map.hpp>
 #include <ensketch/xstd/meta/radix_tree.hpp>
 #include <ensketch/xstd/meta/type_list.hpp>
 #include <ensketch/xstd/meta/value_list.hpp>

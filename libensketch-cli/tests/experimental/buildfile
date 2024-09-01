@@ -1,0 +1,3 @@
+import libs = libensketch-cli%lib{ensketch-cli}
+
+exe{experimental}: {hxx ixx txx cxx}{**} $libs

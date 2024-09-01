@@ -3,12 +3,14 @@
 #include <thread>
 //
 #include <ensketch/cli/arg_list.hpp>
+#include <ensketch/cli/args_view.hpp>
 #include <ensketch/cli/default_parser.hpp>
 #include <ensketch/cli/default_parser_primitives.hpp>
 #include <ensketch/cli/option_entry.hpp>
 #include <ensketch/cli/option_list.hpp>
 #include <ensketch/cli/parser/name_parser.hpp>
 #include <ensketch/cli/parser/position_parser.hpp>
+#include <ensketch/cli/parser/prefix_parser.hpp>
 #include <ensketch/cli/parser/shortcut_parser.hpp>
 #include <ensketch/cli/parser_entry.hpp>
 #include <ensketch/cli/parser_kernel.hpp>
@@ -94,6 +96,24 @@ struct std::formatter<std::filesystem::path, char> {
 // std::println("------");
 // match2(0);
 // match2(std::make_optional(0));
+
+// struct context {
+//   int x;
+// };
+
+// constexpr auto expand(context ctx) {
+//   struct : context {
+//     int y;
+//   } result{ctx, 2};
+//   return result;
+// }
+
+// static_assert(expand({}).y == 2);
+// static_assert(expand({1}).x == 1);
+
+// auto do_something(auto x) -> auto {
+//   return x + 1;
+// }
 
 int main(int argc, char* argv[]) {
   namespace cli = ensketch::cli;
