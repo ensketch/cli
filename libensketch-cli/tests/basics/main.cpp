@@ -38,8 +38,8 @@ struct std::formatter<std::vector<type>, char> {
     return ctx.begin();
   }
   template <class context>
-  auto format(const vector<type>& data,
-              context& ctx) const -> context::iterator {
+  auto format(const vector<type>& data, context& ctx) const
+      -> context::iterator {
     string str{};
     if (!data.empty()) {
       str += std::format("{}", data.front());
@@ -57,8 +57,8 @@ struct std::formatter<std::optional<type>, char> {
     return ctx.begin();
   }
   template <class context>
-  auto format(const optional<type>& data,
-              context& ctx) const -> context::iterator {
+  auto format(const optional<type>& data, context& ctx) const
+      -> context::iterator {
     string str{};
     if (data)
       str = std::format("{}", data.value());
@@ -75,8 +75,8 @@ struct std::formatter<std::filesystem::path, char> {
     return ctx.begin();
   }
   template <class context>
-  auto format(const filesystem::path& path,
-              context& ctx) const -> context::iterator {
+  auto format(const filesystem::path& path, context& ctx) const
+      -> context::iterator {
     return ranges::copy(path.string(), ctx.out()).out;
   }
 };
@@ -143,9 +143,12 @@ int main(int argc, char* argv[]) {
       bind<'s', "string">, bind<'f', "file">);
 
   const auto print_options = [&options] {
-    for_each(options.data(), []<auto name>(auto&& value) {
-      std::println("{} = {}", name, std::forward<decltype(value)>(value));
-    });
+    for_each(
+        options.data(),
+        []<auto name>(auto&& value) {
+          std::println("{} = {}", name, std::forward<decltype(value)>(value));
+        },
+        std::decay_t<decltype(options)>::data_type::names);
   };
 
   try {
